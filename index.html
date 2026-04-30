@@ -1,0 +1,2088 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>IMMORTAL BEING</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600;1,700&family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,200;0,300;0,400;1,200;1,300;1,400&family=Space+Mono:ital@0;1&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════
+   ROOT & RESET
+═══════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --r: #9b0000; --r2: #c41230; --r3: #e8193c; --r4: #ff4060;
+  --g: #c8a45a; --g2: #e8c87a;
+  --ink: #030108; --ink2: #070212; --ink3: #0f0320;
+  --s1: #d4c4e0; --s2: #9080a8; --s3: #5a4870; --s4: #2a1840;
+  --w: clamp(300px, 100vw, 1800px);
+}
+html { height: 100%; background: var(--ink); }
+body {
+  min-height: 100%; background: var(--ink);
+  font-family: 'Crimson Pro', Georgia, serif;
+  color: var(--s1); overflow-x: hidden;
+  cursor: none;
+}
+::selection { background: rgba(155,0,0,.4); color: #fff; }
+::-webkit-scrollbar { width: 2px; }
+::-webkit-scrollbar-thumb { background: rgba(155,0,0,.5); }
+
+/* ═══════════════════════════════════
+   CUSTOM CURSOR
+═══════════════════════════════════ */
+#c-dot {
+  position: fixed; z-index: 9999; pointer-events: none;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--r3); top: 0; left: 0;
+  transform: translate(-50%,-50%);
+  transition: width .2s, height .2s, background .2s;
+  mix-blend-mode: screen;
+}
+#c-ring {
+  position: fixed; z-index: 9998; pointer-events: none;
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 1px solid rgba(196,18,48,.5);
+  top: 0; left: 0; transform: translate(-50%,-50%);
+  transition: all .08s linear;
+}
+body.hovering #c-dot { width: 10px; height: 10px; background: var(--r4); }
+body.hovering #c-ring { width: 44px; height: 44px; border-color: rgba(196,18,48,.8); }
+
+/* ═══════════════════════════════════
+   CANVAS BG
+═══════════════════════════════════ */
+#bg-canvas {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════
+   NOISE + VIGNETTE
+═══════════════════════════════════ */
+.noise-overlay {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  opacity: .04;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+.vignette {
+  position: fixed; inset: 0; z-index: 2; pointer-events: none;
+  background: radial-gradient(ellipse 85% 85% at 50% 50%, transparent 45%, rgba(3,1,8,.95) 100%);
+}
+
+/* ═══════════════════════════════════
+   SCAN LINES
+═══════════════════════════════════ */
+.scanlines {
+  position: fixed; inset: 0; z-index: 2; pointer-events: none; opacity: .015;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,1) 2px, rgba(0,0,0,1) 4px);
+}
+
+/* ═══════════════════════════════════
+   SIDE RUNES
+═══════════════════════════════════ */
+.side-rune {
+  position: fixed; top: 50%; z-index: 3; pointer-events: none;
+  font-family: 'Space Mono', monospace; font-size: 9px;
+  letter-spacing: .5em; writing-mode: vertical-rl;
+  color: rgba(155,0,0,.2); transform: translateY(-50%);
+  animation: runeBreath 8s ease-in-out infinite;
+}
+.side-rune-l { left: 16px; }
+.side-rune-r { right: 16px; animation-delay: 4s; }
+@keyframes runeBreath {
+  0%,100% { opacity: .15; }
+  50% { opacity: .3; }
+}
+
+/* ═══════════════════════════════════
+   PAGE SYSTEM
+═══════════════════════════════════ */
+.page {
+  position: fixed; inset: 0; z-index: 10;
+  display: none; opacity: 0;
+}
+.page.visible { display: flex; }
+.page.shown { opacity: 1; }
+
+/* ═══════════════════════════════════
+   ① INTRO — CINEMATIC TITLE CARD
+═══════════════════════════════════ */
+#p-intro {
+  flex-direction: column;
+  align-items: center; justify-content: center;
+  background: var(--ink);
+  overflow: hidden;
+}
+
+/* Diagonal bg slash */
+.intro-slash {
+  position: absolute;
+  width: 140%; height: 60%;
+  background: linear-gradient(135deg, rgba(155,0,0,.06) 0%, rgba(100,0,30,.12) 40%, transparent 70%);
+  transform: rotate(-8deg) translateY(-10%);
+  pointer-events: none;
+}
+.intro-slash-2 {
+  position: absolute;
+  width: 100%; height: 100%;
+  background: radial-gradient(ellipse 80% 60% at 50% 30%, rgba(155,0,0,.08) 0%, transparent 65%);
+  pointer-events: none;
+}
+
+/* Corner ornaments */
+.corner {
+  position: absolute; width: 60px; height: 60px;
+  pointer-events: none; z-index: 5;
+}
+.corner svg { width: 100%; height: 100%; }
+.corner-tl { top: 24px; left: 24px; }
+.corner-tr { top: 24px; right: 24px; transform: scaleX(-1); }
+.corner-bl { bottom: 24px; left: 24px; transform: scaleY(-1); }
+.corner-br { bottom: 24px; right: 24px; transform: scale(-1); }
+
+/* Chapter label */
+.chapter-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; letter-spacing: .6em;
+  color: rgba(196,18,48,.5); text-transform: uppercase;
+  margin-bottom: 40px;
+  opacity: 0; transform: translateY(10px);
+  transition: opacity .8s .2s ease, transform .8s .2s ease;
+}
+#p-intro.shown .chapter-label { opacity: 1; transform: none; }
+
+/* Main title block */
+.intro-title-block {
+  position: relative; text-align: center; margin-bottom: 20px;
+}
+.intro-ghost {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: min(32vw, 380px);
+  color: rgba(155,0,0,.03);
+  letter-spacing: -.04em; line-height: 1;
+  pointer-events: none; white-space: nowrap;
+  animation: ghostFloat 12s ease-in-out infinite;
+}
+@keyframes ghostFloat {
+  0%,100% { transform: translate(-50%,-50%) scale(1); }
+  50% { transform: translate(-50%,-50%) scale(1.03); }
+}
+
+.intro-eyebrow {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; letter-spacing: .5em;
+  color: var(--r2); text-transform: uppercase;
+  margin-bottom: 16px;
+  opacity: 0; transform: translateY(14px);
+  transition: opacity .7s .4s ease, transform .7s .4s ease;
+  display: block;
+}
+#p-intro.shown .intro-eyebrow { opacity: 1; transform: none; }
+
+.intro-name {
+  font-family: 'Cormorant', serif;
+  font-size: clamp(56px, 11vw, 130px);
+  font-weight: 700; line-height: .88;
+  letter-spacing: -.01em; color: #fff;
+  text-shadow: 0 0 80px rgba(155,0,0,.4);
+  opacity: 0; transform: translateY(20px);
+  transition: opacity .9s .55s ease, transform .9s .55s ease;
+}
+#p-intro.shown .intro-name { opacity: 1; transform: none; }
+
+.intro-name-italic {
+  font-style: italic; font-weight: 300;
+  background: linear-gradient(90deg, var(--r2), var(--r4));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: block;
+}
+
+/* Ornamental rule */
+.intro-rule {
+  display: flex; align-items: center; gap: 0;
+  width: min(500px, 80vw); margin: 28px auto;
+  opacity: 0; transition: opacity .8s .8s ease;
+}
+#p-intro.shown .intro-rule { opacity: 1; }
+.intro-rule-line {
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(155,0,0,.6), transparent);
+}
+.intro-rule-center {
+  padding: 0 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.intro-rule-diamond {
+  width: 6px; height: 6px;
+  background: var(--r2); transform: rotate(45deg);
+  box-shadow: 0 0 10px var(--r2);
+}
+.intro-rule-text {
+  font-family: 'Space Mono', monospace;
+  font-size: 8px; letter-spacing: .35em;
+  color: rgba(155,0,0,.6); white-space: nowrap;
+}
+
+/* Tagline */
+.intro-tagline {
+  font-family: 'Cormorant', serif;
+  font-style: italic; font-weight: 300;
+  font-size: clamp(15px, 2.2vw, 20px);
+  color: var(--s2); letter-spacing: .04em;
+  max-width: 480px; text-align: center;
+  line-height: 1.6; margin-bottom: 56px;
+  opacity: 0; transform: translateY(12px);
+  transition: opacity .8s .95s ease, transform .8s .95s ease;
+}
+#p-intro.shown .intro-tagline { opacity: 1; transform: none; }
+
+/* CTA buttons */
+.intro-ctas {
+  display: flex; gap: 16px; align-items: center;
+  flex-wrap: wrap; justify-content: center;
+  opacity: 0; transform: translateY(12px);
+  transition: opacity .8s 1.1s ease, transform .8s 1.1s ease;
+}
+#p-intro.shown .intro-ctas { opacity: 1; transform: none; }
+
+.btn-main {
+  position: relative; overflow: hidden;
+  padding: 15px 44px;
+  background: var(--r);
+  border: none; color: #fff;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px; letter-spacing: .3em;
+  cursor: none; transition: all .4s;
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+}
+.btn-main::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,.1) 0%, transparent 60%);
+  opacity: 0; transition: opacity .3s;
+}
+.btn-main:hover { background: var(--r2); letter-spacing: .4em; }
+.btn-main:hover::after { opacity: 1; }
+.btn-main-inner { position: relative; z-index: 1; display: flex; align-items: center; gap: 10px; }
+
+.btn-outline {
+  padding: 14px 36px;
+  background: none; border: 1px solid rgba(155,0,0,.35);
+  color: var(--s2);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 13px; letter-spacing: .3em;
+  cursor: none; transition: all .4s;
+}
+.btn-outline:hover { border-color: rgba(196,18,48,.7); color: var(--r4); }
+
+/* Bottom stamp */
+.intro-stamp {
+  position: absolute; bottom: 36px;
+  display: flex; align-items: center; gap: 24px;
+  opacity: 0; transition: opacity 1s 1.5s ease;
+}
+#p-intro.shown .intro-stamp { opacity: .35; }
+.intro-stamp-text {
+  font-family: 'Space Mono', monospace;
+  font-size: 8px; letter-spacing: .4em;
+  color: rgba(155,0,0,.7);
+}
+.intro-stamp-dot {
+  width: 3px; height: 3px; border-radius: 50%;
+  background: rgba(155,0,0,.5);
+}
+
+/* Sigil top */
+.intro-sigil-top {
+  position: absolute; top: 36px;
+  opacity: 0; transition: opacity 1s 1.6s ease;
+}
+#p-intro.shown .intro-sigil-top { opacity: 1; }
+.intro-sigil-top svg {
+  width: 40px; height: 40px;
+  filter: drop-shadow(0 0 12px rgba(155,0,0,.5));
+  animation: sigilSpin 20s linear infinite;
+}
+@keyframes sigilSpin { to { transform: rotate(360deg); } }
+
+/* Blood drip animation */
+.blood-drip-wrap {
+  position: absolute; top: 0; left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.blood-drip {
+  width: 1px; background: linear-gradient(180deg, var(--r2), rgba(155,0,0,.1), transparent);
+  margin: 0 auto;
+  animation: dripFall 2.5s 2s ease-out both;
+}
+@keyframes dripFall {
+  from { height: 0; opacity: 1; }
+  to { height: 90px; opacity: 1; }
+}
+
+/* ═══════════════════════════════════
+   ② NAV — FULL IMMERSIVE
+═══════════════════════════════════ */
+#p-nav {
+  flex-direction: column;
+  align-items: center; justify-content: center;
+  overflow: hidden; padding: 24px;
+}
+
+.nav-bg-text {
+  position: absolute; bottom: -5%;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: min(25vw, 260px);
+  color: rgba(155,0,0,.025);
+  letter-spacing: -.03em; line-height: 1;
+  pointer-events: none; user-select: none;
+  white-space: nowrap;
+  animation: bgTextDrift 20s ease-in-out infinite;
+}
+@keyframes bgTextDrift {
+  0%,100% { transform: translateX(-1%); }
+  50% { transform: translateX(1%); }
+}
+
+.nav-content {
+  position: relative; z-index: 5;
+  display: flex; flex-direction: column;
+  align-items: center; width: 100%;
+  max-width: 860px;
+}
+
+.nav-chapter {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; letter-spacing: .6em;
+  color: rgba(196,18,48,.45); margin-bottom: 24px;
+  display: flex; align-items: center; gap: 14px;
+}
+.nav-chapter::before, .nav-chapter::after {
+  content: ''; flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(155,0,0,.25));
+  max-width: 60px;
+}
+.nav-chapter::after { background: linear-gradient(270deg, transparent, rgba(155,0,0,.25)); }
+
+.nav-headline {
+  font-family: 'Cormorant', serif;
+  font-size: clamp(36px, 6.5vw, 80px);
+  font-weight: 700; text-align: center;
+  color: #fff; line-height: .9;
+  letter-spacing: -.02em; margin-bottom: 10px;
+}
+.nav-headline-sub {
+  font-family: 'Cormorant', serif;
+  font-style: italic; font-weight: 300;
+  font-size: clamp(16px, 3vw, 38px);
+  color: var(--r2); text-align: center;
+  margin-bottom: 36px;
+}
+
+/* Option cards */
+.nav-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px; width: 100%;
+}
+@media(max-width:560px) { .nav-grid { grid-template-columns: 1fr; gap: 10px; } }
+
+.nav-option {
+  position: relative; overflow: hidden;
+  padding: 36px 32px 32px;
+  background: rgba(255,255,255,.016);
+  border: 1px solid rgba(155,0,0,.1);
+  cursor: none; transition: all .5s cubic-bezier(.4,0,.2,1);
+  display: flex; flex-direction: column; gap: 14px;
+}
+.nav-option::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(155,0,0,.08), transparent 60%);
+  opacity: 0; transition: opacity .4s;
+}
+.nav-option::after {
+  content: ''; position: absolute;
+  bottom: 0; left: 0; width: 0; height: 2px;
+  background: linear-gradient(90deg, var(--r), var(--r3));
+  transition: width .5s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 0 12px rgba(196,18,48,.6);
+}
+.nav-option:hover { border-color: rgba(196,18,48,.3); transform: translateY(-3px); box-shadow: 0 24px 64px rgba(155,0,0,.15); }
+.nav-option:hover::before { opacity: 1; }
+.nav-option:hover::after { width: 100%; }
+
+.no-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 60px; color: rgba(155,0,0,.08);
+  line-height: 1; transition: color .4s;
+  position: absolute; top: 20px; right: 24px;
+}
+.nav-option:hover .no-num { color: rgba(155,0,0,.15); }
+
+.no-icon {
+  width: 48px; height: 48px;
+  border: 1px solid rgba(155,0,0,.2);
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(155,0,0,.04);
+  transition: all .4s;
+}
+.nav-option:hover .no-icon { border-color: rgba(196,18,48,.5); box-shadow: 0 0 20px rgba(155,0,0,.2); }
+.no-icon svg { width: 26px; height: 26px; }
+
+.no-title {
+  font-family: 'Cormorant', serif;
+  font-size: 24px; font-weight: 600;
+  color: #fff; transition: color .3s;
+}
+.nav-option:hover .no-title { color: var(--r4); }
+
+.no-desc {
+  font-family: 'Crimson Pro', serif;
+  font-size: 14px; color: var(--s3);
+  line-height: 1.65; flex: 1;
+}
+
+.no-action {
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 11px; letter-spacing: .3em;
+  color: rgba(196,18,48,.5); transition: all .35s;
+}
+.nav-option:hover .no-action { color: var(--r3); gap: 14px; }
+.no-action-line { flex: 1; height: 1px; background: currentColor; max-width: 20px; }
+
+/* Founder bar */
+.nav-founder {
+  width: 100%; margin-top: 3px;
+  padding: 18px 28px;
+  background: rgba(155,0,0,.04);
+  border: 1px solid rgba(155,0,0,.08);
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 16px;
+}
+@media(max-width:560px) { .nav-founder { flex-direction: column; text-align: center; margin-top: 10px; } }
+.nf-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 8px; letter-spacing: .45em;
+  color: rgba(155,0,0,.4);
+}
+.nf-name {
+  font-family: 'Cormorant', serif;
+  font-style: italic; font-size: 20px;
+  font-weight: 600; color: var(--g);
+  text-shadow: 0 0 20px rgba(200,164,90,.3);
+}
+.nf-badge {
+  font-family: 'Space Mono', monospace;
+  font-size: 8px; letter-spacing: .3em;
+  color: rgba(155,0,0,.35); padding: 5px 12px;
+  border: 1px solid rgba(155,0,0,.15);
+}
+
+/* ═══════════════════════════════════
+   ③ AUTH — EDITORIAL SPLIT
+═══════════════════════════════════ */
+#p-auth {
+  flex-direction: row; overflow: hidden;
+}
+@media(max-width:768px) { #p-auth { flex-direction: column; } }
+
+/* Left visual panel */
+.auth-panel-left {
+  width: 42%; min-height: 100%;
+  background: linear-gradient(160deg, #120018, #1e000a, #0a0015);
+  display: flex; flex-direction: column;
+  justify-content: flex-end; padding: 56px 48px;
+  position: relative; overflow: hidden;
+  border-right: 1px solid rgba(155,0,0,.12);
+}
+@media(max-width:768px) { .auth-panel-left { display: none; } }
+
+.apl-art {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  opacity: .18;
+}
+.apl-art svg {
+  width: min(340px, 85%); height: auto;
+  filter: drop-shadow(0 0 60px rgba(155,0,0,.6));
+  animation: artFloat 6s ease-in-out infinite;
+}
+@keyframes artFloat {
+  0%,100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(.5deg); }
+}
+
+.apl-noise {
+  position: absolute; inset: 0; opacity: .06;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.apl-number {
+  position: absolute; top: 40px; left: 44px;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 180px; color: rgba(155,0,0,.04);
+  line-height: 1; pointer-events: none;
+}
+
+.apl-text { position: relative; z-index: 2; }
+.apl-kicker {
+  font-family: 'Space Mono', monospace;
+  font-size: 8px; letter-spacing: .5em;
+  color: rgba(196,18,48,.45); margin-bottom: 14px;
+}
+.apl-quote {
+  font-family: 'Cormorant', serif;
+  font-style: italic; font-weight: 300;
+  font-size: 22px; color: rgba(255,255,255,.65);
+  line-height: 1.55;
+}
+.apl-quote strong { color: var(--r3); font-style: normal; font-weight: 600; }
+
+/* Right form panel */
+.auth-panel-right {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 60px clamp(24px,6%,72px); overflow-y: auto;
+}
+
+.apr-mark {
+  width: 56px; height: 56px; margin-bottom: 28px;
+}
+.apr-mark svg {
+  width: 100%; height: 100%;
+  filter: drop-shadow(0 0 20px rgba(155,0,0,.7));
+  animation: markPulse 3s ease-in-out infinite;
+}
+@keyframes markPulse {
+  0%,100% { filter: drop-shadow(0 0 16px rgba(155,0,0,.5)); }
+  50% { filter: drop-shadow(0 0 32px rgba(196,18,48,.9)); }
+}
+
+.apr-title {
+  font-family: 'Cormorant', serif;
+  font-size: clamp(28px, 4.5vw, 44px);
+  font-weight: 700; color: #fff;
+  text-align: center; margin-bottom: 4px;
+  letter-spacing: -.01em;
+}
+.apr-sub {
+  font-family: 'Crimson Pro', serif;
+  font-style: italic; font-size: 15px;
+  color: var(--s3); margin-bottom: 32px; text-align: center;
+}
+
+/* Tabs */
+.apr-tabs {
+  display: flex; width: 100%; max-width: 400px;
+  border-bottom: 1px solid rgba(155,0,0,.15); margin-bottom: 32px;
+}
+.apr-tab {
+  flex: 1; padding: 12px; background: none; border: none;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 12px; letter-spacing: .25em;
+  color: var(--s3); cursor: none; transition: all .3s;
+  position: relative;
+}
+.apr-tab::after {
+  content: ''; position: absolute; bottom: -1px;
+  left: 0; right: 0; height: 1px; background: var(--r3);
+  transform: scaleX(0); transition: transform .3s;
+  box-shadow: 0 0 8px var(--r3);
+}
+.apr-tab.active { color: var(--r4); }
+.apr-tab.active::after { transform: scaleX(1); }
+.apr-tab:hover:not(.active) { color: var(--s1); }
+
+/* Form */
+.apr-form { width: 100%; max-width: 400px; display: flex; flex-direction: column; gap: 22px; }
+.apr-field { display: flex; flex-direction: column; gap: 7px; }
+.apr-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 8px; letter-spacing: .4em;
+  color: rgba(155,0,0,.5); text-transform: uppercase;
+}
+.apr-inp-wrap { position: relative; }
+.apr-inp {
+  width: 100%; padding: 13px 0; background: none;
+  border: none; border-bottom: 1px solid rgba(155,0,0,.2);
+  color: #fff; font-family: 'Crimson Pro', serif; font-size: 16px;
+  outline: none; transition: border-color .3s;
+}
+.apr-inp:focus { border-color: rgba(196,18,48,.6); }
+.apr-inp::placeholder { color: rgba(255,255,255,.12); font-style: italic; }
+.apr-inp-note { font-family: 'Crimson Pro', serif; font-style: italic; font-size: 12px; color: var(--s3); }
+.apr-eye {
+  position: absolute; right: 0; top: 50%;
+  transform: translateY(-50%);
+  background: none; border: none;
+  color: rgba(255,255,255,.2); font-size: 14px;
+  cursor: none; transition: color .3s;
+}
+.apr-eye:hover { color: rgba(255,255,255,.6); }
+
+.apr-check { display: flex; align-items: flex-start; gap: 10px; }
+.apr-check input { margin-top: 4px; accent-color: var(--r); width: 13px; height: 13px; flex-shrink: 0; }
+.apr-check label { font-family: 'Crimson Pro', serif; font-size: 13px; color: var(--s3); cursor: none; line-height: 1.5; }
+.apr-link { color: var(--r2); cursor: none; transition: color .3s; }
+.apr-link:hover { color: var(--r4); }
+
+.apr-submit {
+  position: relative; overflow: hidden;
+  width: 100%; padding: 16px;
+  background: none; border: 1px solid rgba(155,0,0,.4);
+  color: var(--r3);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 13px; letter-spacing: .35em;
+  cursor: none; transition: all .5s;
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+}
+.apr-submit-bg {
+  position: absolute; inset: 0; background: var(--r);
+  transform: scaleX(0); transform-origin: left;
+  transition: transform .5s cubic-bezier(.4,0,.2,1);
+}
+.apr-submit-text { position: relative; z-index: 1; }
+.apr-submit:hover .apr-submit-bg { transform: scaleX(1); }
+.apr-submit:hover { color: #fff; border-color: var(--r); }
+.apr-submit:hover .apr-submit-text { letter-spacing: .45em; transition: letter-spacing .5s; }
+
+.apr-foot { font-family: 'Crimson Pro', serif; font-size: 14px; color: var(--s3); text-align: center; }
+
+/* ═══════════════════════════════════
+   ④ SACRED LINKS
+═══════════════════════════════════ */
+#p-main {
+  flex-direction: column; align-items: stretch;
+  overflow-y: auto;
+}
+
+/* HERO */
+.main-hero {
+  position: relative; overflow: hidden;
+  padding: clamp(80px,10vh,140px) clamp(24px,8%,100px) clamp(40px,5vh,80px);
+  display: flex; flex-direction: column; align-items: center;
+  border-bottom: 1px solid rgba(155,0,0,.08);
+  background: linear-gradient(180deg, rgba(155,0,0,.07) 0%, transparent 100%);
+  flex-shrink: 0;
+}
+.mh-bg-num {
+  position: absolute; right: -2%; bottom: -10%;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: min(35vw, 360px);
+  color: rgba(155,0,0,.025);
+  line-height: 1; pointer-events: none; user-select: none;
+}
+
+.mh-avatar {
+  position: relative; width: 80px; height: 80px; margin-bottom: 24px;
+}
+.mh-avatar-ring {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: conic-gradient(from 0deg, transparent 60%, rgba(155,0,0,.6) 100%);
+  animation: ringSpinMain 8s linear infinite;
+  border: 1px solid rgba(155,0,0,.15);
+}
+@keyframes ringSpinMain { to { transform: rotate(360deg); } }
+.mh-avatar-inner {
+  position: absolute; inset: 8px; border-radius: 50%;
+  border: 1px solid rgba(155,0,0,.25);
+  background: radial-gradient(circle, rgba(155,0,0,.12), rgba(155,0,0,.03));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+  filter: drop-shadow(0 0 10px rgba(155,0,0,.5));
+}
+
+.mh-sup {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; letter-spacing: .55em;
+  color: rgba(155,0,0,.4); margin-bottom: 10px;
+}
+.mh-title {
+  font-family: 'Cormorant', serif;
+  font-size: clamp(36px, 7vw, 72px);
+  font-weight: 700; color: #fff; text-align: center;
+  line-height: .9; letter-spacing: -.01em; margin-bottom: 10px;
+}
+.mh-title span {
+  font-style: italic; font-weight: 300; color: var(--r2);
+}
+.mh-quote {
+  font-family: 'Crimson Pro', serif;
+  font-style: italic; font-size: 14px;
+  color: var(--s3); text-align: center;
+}
+.mh-rule {
+  display: flex; align-items: center; gap: 10px;
+  width: min(300px,80%); margin-top: 20px;
+}
+.mh-rule-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(155,0,0,.3), transparent); }
+.mh-rule-gem { width: 5px; height: 5px; background: var(--r); transform: rotate(45deg); box-shadow: 0 0 8px var(--r); }
+
+/* Links */
+.main-body {
+  flex: 1; padding: clamp(24px,4%,56px) clamp(20px,6%,80px);
+  display: flex; flex-direction: column; gap: 0;
+}
+.mb-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 8px; letter-spacing: .5em;
+  color: rgba(155,0,0,.3); margin-bottom: 16px;
+  display: flex; align-items: center; gap: 12px;
+}
+.mb-label::after { content: ''; flex: 1; height: 1px; background: rgba(155,0,0,.1); }
+
+.links-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 2px; margin-bottom: 2px;
+}
+
+.link-item {
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; gap: 16px;
+  padding: 18px 20px;
+  background: rgba(255,255,255,.014);
+  border: 1px solid rgba(155,0,0,.09);
+  text-decoration: none; color: inherit;
+  cursor: none; transition: all .45s cubic-bezier(.4,0,.2,1);
+}
+.link-item::before {
+  content: ''; position: absolute;
+  left: 0; top: 0; bottom: 0; width: 0;
+  background: linear-gradient(90deg, rgba(155,0,0,.15), transparent);
+  transition: width .4s;
+}
+.link-item::after {
+  content: ''; position: absolute;
+  bottom: 0; left: 0; height: 1px; width: 0;
+  background: linear-gradient(90deg, var(--r), transparent);
+  transition: width .4s;
+}
+.link-item:hover { border-color: rgba(196,18,48,.25); transform: translateX(6px); }
+.link-item:hover::before { width: 60%; }
+.link-item:hover::after { width: 100%; }
+
+.li-icon {
+  width: 40px; height: 40px; flex-shrink: 0;
+  border-radius: 2px; border: 1px solid rgba(155,0,0,.15);
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(155,0,0,.04);
+  transition: box-shadow .3s, border-color .3s;
+}
+.link-item:hover .li-icon { box-shadow: 0 0 18px rgba(155,0,0,.25); }
+.li-icon svg { width: 21px; height: 21px; }
+.li-icon.roblox { background: rgba(226,35,26,.08); border-color: rgba(226,35,26,.2); }
+.li-icon.discord { background: rgba(88,101,242,.08); border-color: rgba(88,101,242,.2); }
+.li-icon.whatsapp { background: rgba(37,211,102,.07); border-color: rgba(37,211,102,.18); }
+.li-icon.tiktok { background: rgba(255,0,80,.08); border-color: rgba(255,0,80,.2); }
+.li-icon.youtube { background: rgba(255,0,0,.09); border-color: rgba(255,0,0,.22); }
+
+.li-info { flex: 1; min-width: 0; }
+.li-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 14px; letter-spacing: .12em;
+  color: #fff; display: block; margin-bottom: 2px;
+}
+.li-desc {
+  font-family: 'Crimson Pro', serif;
+  font-style: italic; font-size: 12px; color: var(--s3);
+}
+.li-arrow {
+  font-size: 16px; color: rgba(155,0,0,.3);
+  transition: all .35s; flex-shrink: 0;
+}
+.link-item:hover .li-arrow { color: var(--r3); transform: translateX(5px); }
+
+/* main footer */
+.main-foot {
+  padding: 20px clamp(20px,6%,80px);
+  border-top: 1px solid rgba(155,0,0,.07);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+@media(max-width:480px) { .main-foot { flex-direction: column; gap: 6px; text-align: center; } }
+.main-foot-copy {
+  font-family: 'Space Mono', monospace;
+  font-size: 8px; letter-spacing: .35em; color: rgba(155,0,0,.25);
+}
+
+/* ═══════════════════════════════════
+   ⑤ ABOUT
+═══════════════════════════════════ */
+#p-about {
+  flex-direction: column; overflow-y: auto; align-items: stretch;
+}
+
+.about-hero {
+  position: relative; overflow: hidden;
+  padding: clamp(80px,10vh,120px) clamp(24px,8%,100px) clamp(36px,5vh,60px);
+  border-bottom: 1px solid rgba(155,0,0,.08);
+  background: linear-gradient(180deg, rgba(155,0,0,.06), transparent);
+  flex-shrink: 0;
+}
+.ah-ghost {
+  position: absolute; right: -2%; top: 50%; transform: translateY(-50%);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: min(30vw, 280px);
+  color: rgba(155,0,0,.025);
+  line-height: 1; pointer-events: none;
+}
+.ah-eyebrow {
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; letter-spacing: .55em;
+  color: rgba(196,18,48,.4); margin-bottom: 12px;
+}
+.ah-title {
+  font-family: 'Cormorant', serif;
+  font-size: clamp(40px, 7vw, 76px);
+  font-weight: 700; color: #fff;
+  line-height: .9; letter-spacing: -.02em;
+  margin-bottom: 8px;
+}
+.ah-title em { font-style: italic; font-weight: 300; color: var(--r2); }
+.ah-sub { font-family: 'Crimson Pro', serif; font-style: italic; font-size: 14px; color: var(--s3); }
+
+/* Lang toggle */
+.about-lang {
+  display: flex; gap: 0;
+  border: 1px solid rgba(155,0,0,.15); width: fit-content;
+}
+.al-btn {
+  padding: 9px 22px; background: none; border: none;
+  font-family: 'Bebas Neue', sans-serif; font-size: 11px;
+  letter-spacing: .2em; color: var(--s3);
+  cursor: none; transition: all .3s;
+}
+.al-btn.active { background: rgba(155,0,0,.12); color: var(--r3); }
+
+/* About body */
+.about-body {
+  flex: 1; padding: clamp(28px,4%,56px) clamp(20px,8%,100px) 40px;
+}
+.lang-c { display: none; }
+.lang-c.active { display: block; }
+
+.about-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px 60px; margin-top: 24px;
+}
+@media(max-width:640px) { .about-grid { grid-template-columns: 1fr; gap: 28px; } }
+
+.ab-block-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 8px; letter-spacing: .5em;
+  color: var(--r2); text-transform: uppercase;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(155,0,0,.15);
+  margin-bottom: 14px;
+}
+.ab-text {
+  font-family: 'Crimson Pro', serif;
+  font-size: 14px; color: var(--s2); line-height: 1.8;
+}
+.ab-text strong { color: var(--r3); }
+
+.team-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.team-tag {
+  padding: 6px 14px; font-family: 'Bebas Neue', sans-serif;
+  font-size: 10px; letter-spacing: .12em; color: var(--s3);
+  border: 1px solid rgba(155,0,0,.15); background: rgba(155,0,0,.03);
+}
+.team-tag.founder {
+  border-color: rgba(200,164,90,.4);
+  color: var(--g); background: rgba(200,164,90,.04);
+}
+
+.rules-list-ab { list-style: none; display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+.rules-list-ab li { display: flex; gap: 14px; align-items: flex-start; }
+.rn { font-family: 'Bebas Neue', sans-serif; font-size: 10px; letter-spacing: .1em; color: var(--r); flex-shrink: 0; margin-top: 2px; }
+.rules-list-ab li p { font-family: 'Crimson Pro', serif; font-size: 13px; color: var(--s2); line-height: 1.65; }
+
+.about-warning {
+  grid-column: 1/-1;
+  padding: 20px 24px;
+  border-left: 2px solid var(--r);
+  background: rgba(155,0,0,.04);
+}
+.about-warning p { font-family: 'Crimson Pro', serif; font-style: italic; font-size: 14px; color: var(--s2); line-height: 1.75; }
+.about-warning strong { color: var(--r3); font-style: normal; }
+
+/* ═══════════════════════════════════
+   ABOUT MODAL
+═══════════════════════════════════ */
+.modal-bg {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(3,1,8,.9); backdrop-filter: blur(8px);
+  display: none; align-items: flex-end; justify-content: center;
+}
+.modal-bg.open { display: flex; }
+.modal-box {
+  width: 100%; max-width: 580px; max-height: 88vh;
+  background: #0c0218;
+  border-top: 1px solid rgba(155,0,0,.3);
+  overflow-y: auto; padding: 24px 32px 48px;
+  animation: modalRise .4s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 -20px 80px rgba(155,0,0,.15);
+}
+@keyframes modalRise { from { transform: translateY(50px); opacity: 0; } to { transform: none; opacity: 1; } }
+.mb-handle { width: 32px; height: 2px; background: rgba(155,0,0,.25); margin: 0 auto 20px; border-radius: 1px; }
+.mb-close { float: right; background: none; border: none; color: var(--s3); font-size: 18px; cursor: none; transition: color .3s; }
+.mb-close:hover { color: var(--r4); }
+.mb-title { font-family: 'Cormorant', serif; font-weight: 700; font-size: 26px; color: #fff; margin-bottom: 2px; }
+.mb-sub { font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: .4em; color: rgba(155,0,0,.4); margin-bottom: 18px; }
+.mb-divider { height: 1px; background: rgba(155,0,0,.12); margin-bottom: 20px; }
+
+.mb-lang { display: flex; gap: 0; margin-bottom: 20px; border: 1px solid rgba(155,0,0,.15); width: fit-content; }
+.mbl-btn { padding: 7px 18px; background: none; border: none; font-family: 'Bebas Neue', sans-serif; font-size: 10px; letter-spacing: .2em; color: var(--s3); cursor: none; transition: all .3s; }
+.mbl-btn.active { background: rgba(155,0,0,.12); color: var(--r3); }
+
+.mb-lc { display: none; } .mb-lc.active { display: block; }
+.mb-sec { margin-bottom: 20px; }
+.mb-sec-title { font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: .45em; color: var(--r2); text-transform: uppercase; margin-bottom: 10px; }
+.mb-text { font-family: 'Crimson Pro', serif; font-size: 14px; color: var(--s2); line-height: 1.75; }
+.mb-text strong { color: var(--r3); }
+.mb-admin { display: flex; flex-wrap: wrap; gap: 8px; }
+.mb-chip { padding: 5px 12px; border: 1px solid rgba(155,0,0,.18); background: rgba(155,0,0,.04); font-family: 'Bebas Neue', sans-serif; font-size: 9px; letter-spacing: .12em; color: var(--s3); }
+.mb-chip.founder { border-color: rgba(200,164,90,.4); color: var(--g); background: rgba(200,164,90,.04); }
+.mb-rules { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+.mb-rules li { display: flex; gap: 12px; align-items: flex-start; }
+.mb-rules li p { font-family: 'Crimson Pro', serif; font-size: 13px; color: var(--s2); line-height: 1.65; }
+.mb-warn { margin-top: 12px; padding: 14px 18px; border-left: 2px solid var(--r); background: rgba(155,0,0,.04); font-family: 'Crimson Pro', serif; font-style: italic; font-size: 13px; color: var(--s2); line-height: 1.7; }
+.mb-warn strong { color: var(--r3); font-style: normal; }
+
+/* ═══════════════════════════════════
+   BACK BUTTON
+═══════════════════════════════════ */
+.back-global {
+  position: fixed; top: 22px; left: 24px; z-index: 100;
+  background: none; border: none;
+  font-family: 'Space Mono', monospace;
+  font-size: 9px; letter-spacing: .4em;
+  color: rgba(155,0,0,.5); cursor: none;
+  text-transform: uppercase;
+  display: flex; align-items: center; gap: 8px;
+  transition: color .3s;
+}
+.back-global::before { content: '←'; transition: transform .3s; }
+.back-global:hover { color: var(--r3); }
+.back-global:hover::before { transform: translateX(-4px); }
+
+/* ═══════════════════════════════════
+   TOAST
+═══════════════════════════════════ */
+#toast {
+  position: fixed; bottom: 32px; left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  background: rgba(8,2,18,.96);
+  border: 1px solid rgba(155,0,0,.35);
+  color: var(--r3);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 11px; letter-spacing: .25em;
+  padding: 12px 28px; opacity: 0; z-index: 999;
+  transition: all .4s; pointer-events: none;
+  white-space: nowrap;
+  box-shadow: 0 0 40px rgba(155,0,0,.15);
+  clip-path: polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ═══════════════════════════════════
+   PAGE FOOTER (all pages)
+═══════════════════════════════════ */
+.pg-foot {
+  font-family: 'Space Mono', monospace;
+  font-size: 8px; letter-spacing: .35em;
+  color: rgba(155,0,0,.2); text-align: center;
+  padding: 16px;
+}
+
+/* ═══════════════════════════════════
+   KEYFRAMES
+═══════════════════════════════════ */
+@keyframes burstOut {
+  0% { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--bx)), calc(-50% + var(--by))) scale(0.3); }
+}
+@keyframes emberFly {
+  0% { transform: translateY(0) translateX(0); opacity: .7; }
+  100% { transform: translateY(-100vh) translateX(calc(var(--ex) * 60px)); opacity: 0; }
+}
+
+/* ═══════════════════════════════════
+   RESPONSIVE TWEAKS
+═══════════════════════════════════ */
+@media(max-width:480px) {
+  .corner { width: 40px; height: 40px; }
+  .intro-stamp { flex-wrap: wrap; justify-content: center; }
+  .nav-founder { gap: 8px; }
+  .about-grid { gap: 20px; }
+}
+
+/* ═══════════════════════════════════
+   ⑥ HALL OF LEGENDS
+═══════════════════════════════════ */
+#p-hall { flex-direction: column; align-items: stretch; overflow-y: auto; }
+.hall-hero {
+  position: relative; overflow: hidden;
+  padding: clamp(80px,10vh,130px) clamp(24px,8%,100px) clamp(36px,5vh,60px);
+  border-bottom: 1px solid rgba(155,0,0,.08);
+  background: linear-gradient(180deg, rgba(200,164,90,.05), transparent);
+  flex-shrink: 0; text-align: center;
+}
+.hall-ghost {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+  font-family: 'Bebas Neue', sans-serif; font-size: min(40vw,380px);
+  color: rgba(200,164,90,.018); pointer-events: none; white-space: nowrap;
+}
+.hall-trophy { width: 64px; height: 64px; margin: 0 auto 20px; animation: trophyGlow 3s ease-in-out infinite; }
+@keyframes trophyGlow {
+  0%,100% { filter: drop-shadow(0 0 14px rgba(200,164,90,.4)); }
+  50% { filter: drop-shadow(0 0 32px rgba(200,164,90,.8)); }
+}
+.hall-trophy svg { width: 100%; height: 100%; }
+.hall-eyebrow { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .55em; color: rgba(200,164,90,.5); margin-bottom: 10px; }
+.hall-title { font-family: 'Cormorant', serif; font-weight: 700; font-size: clamp(36px,7vw,72px); color: #fff; line-height: .9; margin-bottom: 8px; }
+.hall-title em { font-style: italic; font-weight: 300; color: var(--g); }
+.hall-sub { font-family: 'Crimson Pro', serif; font-style: italic; font-size: 14px; color: var(--s3); }
+.hall-body { flex: 1; padding: clamp(28px,5%,60px) clamp(20px,8%,100px) 40px; max-width: 860px; width: 100%; margin: 0 auto; }
+.rank-list { display: flex; flex-direction: column; gap: 3px; }
+.rank-item {
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; gap: 20px;
+  padding: 18px 24px;
+  background: rgba(255,255,255,.013); border: 1px solid rgba(155,0,0,.09);
+  transition: all .4s;
+}
+.rank-item:hover { border-color: rgba(196,18,48,.25); background: rgba(155,0,0,.05); transform: translateX(6px); }
+.rank-item.rank-1 { border-color: rgba(200,164,90,.22); background: rgba(200,164,90,.035); }
+.rank-item.rank-2 { border-color: rgba(192,192,192,.15); }
+.rank-item.rank-3 { border-color: rgba(180,90,40,.18); }
+.rank-item::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: linear-gradient(90deg,rgba(155,0,0,.1),transparent); transition: width .4s; }
+.rank-item:hover::after { width: 40%; }
+.rank-num { font-family: 'Bebas Neue', sans-serif; font-size: 26px; color: rgba(155,0,0,.18); width: 32px; flex-shrink: 0; text-align: center; }
+.rank-item.rank-1 .rank-num { color: rgba(200,164,90,.55); font-size: 28px; }
+.rank-item.rank-2 .rank-num { color: rgba(192,192,192,.45); }
+.rank-item.rank-3 .rank-num { color: rgba(180,90,40,.45); }
+.rank-medal { width: 38px; height: 38px; flex-shrink: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; background: rgba(155,0,0,.06); border: 1px solid rgba(155,0,0,.12); }
+.rank-item.rank-1 .rank-medal { background: rgba(200,164,90,.08); border-color: rgba(200,164,90,.3); box-shadow: 0 0 16px rgba(200,164,90,.15); }
+.rank-item.rank-2 .rank-medal { background: rgba(192,192,192,.06); border-color: rgba(192,192,192,.2); }
+.rank-item.rank-3 .rank-medal { background: rgba(180,90,40,.06); border-color: rgba(180,90,40,.2); }
+.rank-info { flex: 1; min-width: 0; }
+.rank-name { font-family: 'Cormorant', serif; font-weight: 600; font-size: 18px; color: #fff; display: block; margin-bottom: 2px; }
+.rank-item.rank-1 .rank-name { color: var(--g); }
+.rank-role { font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: .3em; color: rgba(155,0,0,.4); }
+.rank-badge { font-family: 'Bebas Neue', sans-serif; font-size: 10px; letter-spacing: .15em; padding: 5px 12px; border: 1px solid rgba(155,0,0,.15); color: rgba(155,0,0,.45); flex-shrink: 0; transition: all .3s; }
+.rank-item.rank-1 .rank-badge { border-color: rgba(200,164,90,.3); color: var(--g); }
+.rank-item:hover .rank-badge { border-color: rgba(196,18,48,.4); color: var(--r3); }
+.rank-divider { display: flex; align-items: center; gap: 12px; margin: 16px 0; font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: .45em; color: rgba(155,0,0,.3); }
+.rank-divider::before,.rank-divider::after { content: ''; flex: 1; height: 1px; background: rgba(155,0,0,.1); }
+.hall-coming { margin-top: 32px; padding: 28px 24px; text-align: center; border: 1px solid rgba(155,0,0,.1); background: rgba(155,0,0,.03); }
+.hc-icon { font-size: 28px; margin-bottom: 12px; opacity: .35; }
+.hc-title { font-family: 'Cormorant', serif; font-size: 18px; font-weight: 600; color: rgba(255,255,255,.35); margin-bottom: 6px; }
+.hc-sub { font-family: 'Crimson Pro', serif; font-style: italic; font-size: 13px; color: var(--s3); }
+
+/* ═══════════════════════════════════
+   ⑦ THE CODEX
+═══════════════════════════════════ */
+#p-codex { flex-direction: column; overflow-y: auto; align-items: stretch; }
+.codex-hero {
+  position: relative; overflow: hidden;
+  padding: clamp(80px,10vh,130px) clamp(24px,8%,100px) clamp(36px,5vh,60px);
+  border-bottom: 1px solid rgba(155,0,0,.08);
+  background: linear-gradient(180deg, rgba(20,0,40,.25), transparent);
+  flex-shrink: 0;
+}
+.codex-ghost { position: absolute; right: -2%; bottom: -5%; font-family: 'Bebas Neue', sans-serif; font-size: min(28vw,280px); color: rgba(155,0,0,.02); pointer-events: none; line-height: 1; }
+.codex-eyebrow { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: .55em; color: rgba(155,0,0,.4); margin-bottom: 12px; }
+.codex-title { font-family: 'Cormorant', serif; font-weight: 700; font-size: clamp(36px,7vw,72px); color: #fff; line-height: .9; margin-bottom: 8px; }
+.codex-title em { font-style: italic; font-weight: 300; color: var(--r2); }
+.codex-sub { font-family: 'Crimson Pro', serif; font-style: italic; font-size: 14px; color: var(--s3); }
+.codex-body { flex: 1; padding: clamp(28px,5%,56px) clamp(20px,8%,100px) 40px; display: flex; flex-direction: column; gap: 28px; }
+.codex-entry {
+  position: relative; overflow: hidden;
+  padding: 32px 28px; border: 1px solid rgba(155,0,0,.1);
+  background: rgba(255,255,255,.012); transition: border-color .4s;
+}
+.codex-entry::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg,transparent,rgba(155,0,0,.4),transparent); transform: scaleX(0); transition: transform .5s; }
+.codex-entry:hover::before { transform: scaleX(1); }
+.codex-entry:hover { border-color: rgba(196,18,48,.2); }
+.ce-num { font-family: 'Bebas Neue', sans-serif; font-size: 64px; color: rgba(155,0,0,.055); line-height: 1; position: absolute; top: 16px; right: 20px; pointer-events: none; }
+.ce-tag { font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: .5em; color: var(--r2); margin-bottom: 12px; display: flex; align-items: center; gap: 10px; }
+.ce-tag::after { content: ''; flex: 1; height: 1px; background: rgba(155,0,0,.15); max-width: 60px; }
+.ce-title { font-family: 'Cormorant', serif; font-weight: 700; font-size: 26px; color: #fff; margin-bottom: 14px; }
+.ce-body { font-family: 'Crimson Pro', serif; font-size: 15px; color: var(--s2); line-height: 1.85; }
+.ce-body strong { color: var(--r3); } .ce-body em { font-style: italic; color: var(--s1); }
+.ce-quote { margin: 20px 0 0; padding: 16px 20px; border-left: 2px solid rgba(155,0,0,.4); background: rgba(155,0,0,.04); font-family: 'Cormorant', serif; font-style: italic; font-size: 17px; color: rgba(255,255,255,.55); line-height: 1.6; }
+.ce-quote cite { display: block; margin-top: 8px; font-family: 'Space Mono', monospace; font-size: 8px; letter-spacing: .3em; color: rgba(155,0,0,.4); font-style: normal; }
+.tenets-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; margin-top: 18px; }
+@media(max-width:560px) { .tenets-grid { grid-template-columns: 1fr; } }
+.tenet { padding: 18px 20px; background: rgba(155,0,0,.04); border: 1px solid rgba(155,0,0,.08); display: flex; align-items: flex-start; gap: 14px; transition: border-color .3s; }
+.tenet:hover { border-color: rgba(196,18,48,.22); }
+.tenet-n { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: rgba(155,0,0,.18); flex-shrink: 0; line-height: 1; }
+.tenet-text { font-family: 'Crimson Pro', serif; font-size: 14px; color: var(--s2); line-height: 1.7; }
+.tenet-text strong { font-family: 'Cormorant', serif; font-size: 16px; color: #fff; display: block; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+
+<div id="c-dot"></div>
+<div id="c-ring"></div>
+
+<canvas id="bg-canvas"></canvas>
+<div class="noise-overlay"></div>
+<div class="scanlines"></div>
+<div class="vignette"></div>
+<div class="side-rune side-rune-l">IMMORTAL · BEING · MMXXII</div>
+<div class="side-rune side-rune-r">RISE · ABOVE · ALL · ✦</div>
+
+<!-- ════════════════════════════════
+     ① INTRO
+════════════════════════════════ -->
+<div id="p-intro" class="page visible">
+  <div class="intro-slash"></div>
+  <div class="intro-slash-2"></div>
+  <div class="blood-drip-wrap"><div class="blood-drip" style="height:0"></div></div>
+
+  <!-- Corner ornaments -->
+  <div class="corner corner-tl">
+    <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 58 L2 2 L58 2" stroke="rgba(155,0,0,.3)" stroke-width="1"/>
+      <path d="M2 40 L2 2 L40 2" stroke="rgba(155,0,0,.15)" stroke-width=".5"/>
+      <circle cx="2" cy="2" r="3" fill="rgba(155,0,0,.4)"/>
+      <line x1="2" y1="20" x2="10" y2="20" stroke="rgba(155,0,0,.2)" stroke-width=".5"/>
+      <line x1="20" y1="2" x2="20" y2="10" stroke="rgba(155,0,0,.2)" stroke-width=".5"/>
+    </svg>
+  </div>
+  <div class="corner corner-tr">
+    <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 58 L2 2 L58 2" stroke="rgba(155,0,0,.3)" stroke-width="1"/>
+      <circle cx="2" cy="2" r="3" fill="rgba(155,0,0,.4)"/>
+      <line x1="2" y1="20" x2="10" y2="20" stroke="rgba(155,0,0,.2)" stroke-width=".5"/>
+      <line x1="20" y1="2" x2="20" y2="10" stroke="rgba(155,0,0,.2)" stroke-width=".5"/>
+    </svg>
+  </div>
+  <div class="corner corner-bl">
+    <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 58 L2 2 L58 2" stroke="rgba(155,0,0,.3)" stroke-width="1"/>
+      <circle cx="2" cy="2" r="3" fill="rgba(155,0,0,.4)"/>
+      <line x1="2" y1="20" x2="10" y2="20" stroke="rgba(155,0,0,.2)" stroke-width=".5"/>
+      <line x1="20" y1="2" x2="20" y2="10" stroke="rgba(155,0,0,.2)" stroke-width=".5"/>
+    </svg>
+  </div>
+  <div class="corner corner-br">
+    <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M2 58 L2 2 L58 2" stroke="rgba(155,0,0,.3)" stroke-width="1"/>
+      <circle cx="2" cy="2" r="3" fill="rgba(155,0,0,.4)"/>
+      <line x1="2" y1="20" x2="10" y2="20" stroke="rgba(155,0,0,.2)" stroke-width=".5"/>
+      <line x1="20" y1="2" x2="20" y2="10" stroke="rgba(155,0,0,.2)" stroke-width=".5"/>
+    </svg>
+  </div>
+
+  <!-- Spinning sigil top -->
+  <div class="intro-sigil-top">
+    <svg viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="40" cy="40" r="36" stroke="rgba(155,0,0,.3)" stroke-width=".8" stroke-dasharray="4 3"/>
+      <circle cx="40" cy="40" r="28" stroke="rgba(155,0,0,.15)" stroke-width=".5" stroke-dasharray="2 4"/>
+      <path d="M40 10 L44 22 L40 30 L36 22 Z" fill="rgba(155,0,0,.5)"/>
+      <path d="M40 70 L44 58 L40 50 L36 58 Z" fill="rgba(155,0,0,.3)"/>
+      <path d="M10 40 L22 36 L30 40 L22 44 Z" fill="rgba(155,0,0,.3)"/>
+      <path d="M70 40 L58 36 L50 40 L58 44 Z" fill="rgba(155,0,0,.3)"/>
+      <circle cx="40" cy="40" r="4" fill="rgba(196,18,48,.6)"/>
+      <circle cx="40" cy="40" r="1.5" fill="rgba(255,64,96,.9)"/>
+    </svg>
+  </div>
+
+  <div class="chapter-label">Chapter 01 · The Realm</div>
+
+  <div class="intro-title-block">
+    <div class="intro-ghost">IB</div>
+    <span class="intro-eyebrow">Immortal Being · Est. MMXXII</span>
+    <h1 class="intro-name">
+      IMMORTAL
+      <span class="intro-name-italic">Being.</span>
+    </h1>
+  </div>
+
+  <div class="intro-rule">
+    <div class="intro-rule-line"></div>
+    <div class="intro-rule-center">
+      <div class="intro-rule-diamond"></div>
+      <span class="intro-rule-text">Claim Your Legacy</span>
+      <div class="intro-rule-diamond"></div>
+    </div>
+    <div class="intro-rule-line"></div>
+  </div>
+
+  <p class="intro-tagline">"Those who dare to rise shall never fall."</p>
+
+  <div class="intro-ctas">
+    <button class="btn-main" onclick="toNav()">
+      <div class="btn-main-inner">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1L13 7L7 13M1 7H13" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+        Enter the Realm
+      </div>
+    </button>
+    <button class="btn-outline" onclick="toAbout()">Discover Our Story</button>
+  </div>
+
+  <div class="intro-stamp">
+    <div class="intro-stamp-dot"></div>
+    <span class="intro-stamp-text">Rise Above All</span>
+    <div class="intro-stamp-dot"></div>
+    <span class="intro-stamp-text">Since 2022</span>
+    <div class="intro-stamp-dot"></div>
+    <span class="intro-stamp-text">Immortal Being</span>
+    <div class="intro-stamp-dot"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     ② NAV
+════════════════════════════════ -->
+<div id="p-nav" class="page">
+  <button class="back-global" onclick="toIntro()">Back</button>
+
+  <div class="nav-bg-text">IMMORTAL</div>
+
+  <div class="nav-content">
+    <div class="nav-chapter">Choose Your Path</div>
+
+    <h2 class="nav-headline">Where will</h2>
+    <p class="nav-headline-sub">you go?</p>
+
+    <div class="nav-grid">
+      <!-- Sacred Links -->
+      <div class="nav-option" onclick="toMain()">
+        <span class="no-num">01</span>
+        <div class="no-icon">
+          <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polyline points="2,19 2,9 7.5,14 13,3 18.5,14 24,9 24,19" stroke="rgba(196,18,48,.9)" stroke-width="1.6" stroke-linejoin="round" fill="rgba(155,0,0,.08)"/>
+            <rect x="2" y="19" width="22" height="5" rx="1" stroke="rgba(196,18,48,.65)" stroke-width="1.2" fill="rgba(155,0,0,.08)"/>
+            <circle cx="13" cy="3" r="2" fill="rgba(255,64,96,.7)"/>
+            <circle cx="2" cy="9" r="1.4" fill="rgba(155,0,0,.5)"/>
+            <circle cx="24" cy="9" r="1.4" fill="rgba(155,0,0,.5)"/>
+          </svg>
+        </div>
+        <div class="no-title">Sacred Links</div>
+        <p class="no-desc">Portals, platforms, and community channels of Immortal Being.</p>
+        <div class="no-action"><div class="no-action-line"></div>Enter</div>
+      </div>
+
+      <!-- Join Our Blood -->
+      <div class="nav-option" onclick="toAuth()">
+        <span class="no-num">02</span>
+        <div class="no-icon">
+          <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13 2C13 2,3 7.5,3 14C3 18.5,6.5,21,10,19C8.5,22,7,24,5,26L21 26C19 24,17.5,22,16 19C19.5,21,23 18.5,23 14C23 7.5,13 2,13 2Z" stroke="rgba(196,18,48,.9)" stroke-width="1.6" stroke-linejoin="round" fill="rgba(155,0,0,.08)"/>
+            <circle cx="13" cy="13" r="4" stroke="rgba(255,64,96,.55)" stroke-width=".9" fill="rgba(155,0,0,.12)"/>
+            <circle cx="13" cy="13" r="1.6" fill="rgba(255,64,96,.85)"/>
+          </svg>
+        </div>
+        <div class="no-title">Join Our Blood</div>
+        <p class="no-desc">Create an account or sign in to become part of the immortal realm.</p>
+        <div class="no-action"><div class="no-action-line"></div>Enter</div>
+      </div>
+
+      <!-- Hall of Legends -->
+      <div class="nav-option" onclick="toHall()">
+        <span class="no-num">03</span>
+        <div class="no-icon">
+          <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="13,2 15.5,9 23,9 17,14 19,21 13,17 7,21 9,14 3,9 10.5,9" stroke="rgba(196,18,48,.9)" stroke-width="1.4" stroke-linejoin="round" fill="rgba(155,0,0,.1)"/>
+            <circle cx="13" cy="12" r="3" stroke="rgba(255,64,96,.5)" stroke-width=".8" fill="rgba(155,0,0,.15)"/>
+            <circle cx="13" cy="12" r="1.2" fill="rgba(255,64,96,.8)"/>
+          </svg>
+        </div>
+        <div class="no-title">Hall of Legends</div>
+        <p class="no-desc">The immortal warriors who have risen above all others in the realm.</p>
+        <div class="no-action"><div class="no-action-line"></div>Enter</div>
+      </div>
+
+      <!-- The Codex -->
+      <div class="nav-option" onclick="toCodex()">
+        <span class="no-num">04</span>
+        <div class="no-icon">
+          <svg viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="2" width="14" height="20" rx="1" stroke="rgba(196,18,48,.9)" stroke-width="1.4" fill="rgba(155,0,0,.08)"/>
+            <path d="M4 6 L18 6" stroke="rgba(196,18,48,.5)" stroke-width=".8"/>
+            <rect x="18" y="4" width="4" height="16" rx="1" stroke="rgba(196,18,48,.5)" stroke-width="1" fill="rgba(155,0,0,.06)"/>
+            <line x1="7" y1="10" x2="15" y2="10" stroke="rgba(196,18,48,.45)" stroke-width=".7"/>
+            <line x1="7" y1="13" x2="15" y2="13" stroke="rgba(196,18,48,.35)" stroke-width=".7"/>
+            <line x1="7" y1="16" x2="12" y2="16" stroke="rgba(196,18,48,.25)" stroke-width=".7"/>
+            <circle cx="11" cy="20" r="1.5" fill="rgba(255,64,96,.6)"/>
+          </svg>
+        </div>
+        <div class="no-title">The Codex</div>
+        <p class="no-desc">Lore, manifesto, and the ancient texts that define what we stand for.</p>
+        <div class="no-action"><div class="no-action-line"></div>Enter</div>
+      </div>
+    </div>
+
+    <div class="nav-founder">
+      <div class="nf-label">Founder · Immortal Being</div>
+      <div class="nf-name">Shinez Kinji</div>
+      <div class="nf-badge">Est. MMXXII</div>
+    </div>
+
+    <div class="pg-foot" style="margin-top:16px">© IMMORTAL BEING — All Rights Reserved</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     ③ AUTH
+════════════════════════════════ -->
+<div id="p-auth" class="page">
+  <button class="back-global" onclick="toNav()">Back</button>
+
+  <div class="auth-panel-left">
+    <div class="apl-noise"></div>
+    <div class="apl-number">02</div>
+    <div class="apl-art">
+      <svg viewBox="0 0 320 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="160" cy="160" r="150" stroke="rgba(155,0,0,.35)" stroke-width="1" stroke-dasharray="5 4"/>
+        <circle cx="160" cy="160" r="120" stroke="rgba(155,0,0,.18)" stroke-width=".6" stroke-dasharray="2 5"/>
+        <path d="M160 28C160 28,56 82,56 148C56 192,84 215,112 200C104 220,96 240,84 260L236 260C224 240,216 220,208 200C236 215,264 192,264 148C264 82,160 28,160 28Z" stroke="rgba(155,0,0,.55)" stroke-width="2" fill="rgba(155,0,0,.06)"/>
+        <circle cx="160" cy="145" r="28" stroke="rgba(196,18,48,.4)" stroke-width="1.5" fill="rgba(155,0,0,.08)"/>
+        <circle cx="160" cy="145" r="12" fill="rgba(155,0,0,.15)"/>
+        <circle cx="160" cy="145" r="4" fill="rgba(255,64,96,.5)"/>
+        <line x1="84" y1="260" x2="236" y2="260" stroke="rgba(155,0,0,.3)" stroke-width="1.5"/>
+        <rect x="145" y="260" width="30" height="70" rx="2" stroke="rgba(155,0,0,.25)" stroke-width="1" fill="none"/>
+        <ellipse cx="160" cy="338" rx="20" ry="8" stroke="rgba(155,0,0,.2)" stroke-width="1" fill="none"/>
+      </svg>
+    </div>
+    <div class="apl-text">
+      <div class="apl-kicker">Join Our Blood · Chapter 02</div>
+      <div class="apl-quote">"Those who dare to <strong>rise</strong> shall never fall."</div>
+    </div>
+  </div>
+
+  <div class="auth-panel-right">
+    <div class="apr-mark">
+      <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="28" cy="28" r="26" stroke="rgba(155,0,0,.28)" stroke-width=".7" stroke-dasharray="3 2.5"/>
+        <path d="M28 8C28 8,11 16,11 27C11 35,16 39,22 36C20 41,18 45,15 50L41 50C38 45,36 41,34 36C40 39,45 35,45 27C45 16,28 8,28 8Z" stroke="rgba(196,18,48,.9)" stroke-width="1.5" stroke-linejoin="round" fill="rgba(155,0,0,.09)"/>
+        <circle cx="28" cy="26" r="5" stroke="rgba(255,64,96,.55)" stroke-width=".9" fill="rgba(155,0,0,.15)"/>
+        <circle cx="28" cy="26" r="2" fill="rgba(255,64,96,.9)"/>
+      </svg>
+    </div>
+    <div class="apr-title">Join Our Blood</div>
+    <div class="apr-sub">Become part of the Immortal realm</div>
+
+    <div class="apr-tabs">
+      <button class="apr-tab active" id="tab-in" onclick="switchTab('in')">Sign In</button>
+      <button class="apr-tab" id="tab-up" onclick="switchTab('up')">Join Now</button>
+    </div>
+
+    <!-- Sign In -->
+    <div class="apr-form" id="form-in">
+      <div class="apr-field">
+        <label class="apr-label">Username or Email</label>
+        <div class="apr-inp-wrap"><input class="apr-inp" type="text" placeholder="Enter your identity…"/></div>
+      </div>
+      <div class="apr-field">
+        <label class="apr-label">Password</label>
+        <div class="apr-inp-wrap">
+          <input class="apr-inp" type="password" id="pw1" placeholder="Your secret key…"/>
+          <button class="apr-eye" onclick="showPw('pw1',this)">&#128065;</button>
+        </div>
+      </div>
+      <button class="apr-submit" onclick="doAuth('in')">
+        <div class="apr-submit-bg"></div>
+        <span class="apr-submit-text">✦ Enter the Realm ✦</span>
+      </button>
+      <div class="apr-foot">No account? <span class="apr-link" onclick="switchTab('up')">Join now</span></div>
+    </div>
+
+    <!-- Join Now -->
+    <div class="apr-form" id="form-up" style="display:none">
+      <div class="apr-field">
+        <label class="apr-label">Username</label>
+        <div class="apr-inp-wrap"><input class="apr-inp" type="text" placeholder="Your name in the realm…"/></div>
+        <span class="apr-inp-note">This will be your identity.</span>
+      </div>
+      <div class="apr-field">
+        <label class="apr-label">Email</label>
+        <div class="apr-inp-wrap"><input class="apr-inp" type="email" placeholder="Your email…"/></div>
+      </div>
+      <div class="apr-field">
+        <label class="apr-label">Password</label>
+        <div class="apr-inp-wrap">
+          <input class="apr-inp" type="password" id="pw2" placeholder="Create your key…"/>
+          <button class="apr-eye" onclick="showPw('pw2',this)">&#128065;</button>
+        </div>
+      </div>
+      <div class="apr-field">
+        <label class="apr-label">Confirm Password</label>
+        <div class="apr-inp-wrap">
+          <input class="apr-inp" type="password" id="pw3" placeholder="Confirm key…"/>
+          <button class="apr-eye" onclick="showPw('pw3',this)">&#128065;</button>
+        </div>
+      </div>
+      <div class="apr-check">
+        <input type="checkbox" id="oath"/>
+        <label for="oath">I swear to uphold the <span class="apr-link" onclick="openModal()">rules of Immortal Being</span></label>
+      </div>
+      <button class="apr-submit" onclick="doAuth('up')">
+        <div class="apr-submit-bg"></div>
+        <span class="apr-submit-text">✦ Swear Your Oath ✦</span>
+      </button>
+      <div class="apr-foot">Already a member? <span class="apr-link" onclick="switchTab('in')">Sign in</span></div>
+    </div>
+
+    <div class="pg-foot" style="margin-top:24px">© IMMORTAL BEING — All Rights Reserved</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     ④ SACRED LINKS
+════════════════════════════════ -->
+<div id="p-main" class="page">
+  <button class="back-global" onclick="toNav()">Back</button>
+
+  <div class="main-hero">
+    <div class="mh-bg-num">IB</div>
+    <div class="mh-avatar">
+      <div class="mh-avatar-ring"></div>
+      <div class="mh-avatar-inner">♛</div>
+    </div>
+    <div class="mh-sup">Sacred Links · Chapter 01</div>
+    <h2 class="mh-title">IMMORTAL <span>Being</span></h2>
+    <p class="mh-quote">"Claim Your Legacy · Rise Above All"</p>
+    <div class="mh-rule">
+      <div class="mh-rule-line"></div>
+      <div class="mh-rule-gem"></div>
+      <div class="mh-rule-line"></div>
+    </div>
+  </div>
+
+  <div class="main-body">
+    <div class="mb-label">Community Portals</div>
+
+    <div class="links-grid">
+
+      <a href="https://www.roblox.com/users/9951144525/profile?friendshipSourceType=PlayerSearch" target="_blank" class="link-item">
+        <div class="li-icon roblox">
+          <svg viewBox="0 0 24 24" fill="rgba(226,35,26,.9)"><path d="M5.315 1.37L1.37 18.686 18.686 23.63l3.944-17.315zm9.292 12.218l-4.88-1.261 1.262-4.878 4.878 1.26z"/></svg>
+        </div>
+        <div class="li-info">
+          <span class="li-name">Roblox · Owner</span>
+          <span class="li-desc">Official Immortal Being Account</span>
+        </div>
+        <div class="li-arrow">→</div>
+      </a>
+
+      <a href="https://discord.gg/zHyCDWPNv" target="_blank" class="link-item">
+        <div class="li-icon discord">
+          <svg viewBox="0 0 24 24" fill="rgba(88,101,242,.9)"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057c.002.022.015.043.033.055a19.906 19.906 0 0 0 5.993 3.03.077.077 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+        </div>
+        <div class="li-info">
+          <span class="li-name">Discord</span>
+          <span class="li-desc">Join the Immortal Realm</span>
+        </div>
+        <div class="li-arrow">→</div>
+      </a>
+
+      <a href="https://chat.whatsapp.com/F4k9CcKL4VaLXFtSkWLFQu" target="_blank" class="link-item">
+        <div class="li-icon whatsapp">
+          <svg viewBox="0 0 24 24" fill="rgba(37,211,102,.9)"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+        </div>
+        <div class="li-info">
+          <span class="li-name">WhatsApp</span>
+          <span class="li-desc">Join the Group</span>
+        </div>
+        <div class="li-arrow">→</div>
+      </a>
+
+      <a href="https://www.tiktok.com/@kinjinokinjitsu?_r=1&_t=ZS-95lhk6px25n" target="_blank" class="link-item">
+        <div class="li-icon tiktok">
+          <svg viewBox="0 0 24 24" fill="rgba(255,0,80,.85)"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/></svg>
+        </div>
+        <div class="li-info">
+          <span class="li-name">Shinez · TikTok</span>
+          <span class="li-desc">@kinjinokinjitsu</span>
+        </div>
+        <div class="li-arrow">→</div>
+      </a>
+
+      <a href="https://youtube.com/@immortalityx?si=vpWpJwqm6k7tP81a" target="_blank" class="link-item" style="grid-column:1/-1">
+        <div class="li-icon youtube">
+          <svg viewBox="0 0 24 24" fill="rgba(255,0,0,.9)"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
+        </div>
+        <div class="li-info">
+          <span class="li-name">YouTube</span>
+          <span class="li-desc">@immortalityx</span>
+        </div>
+        <div class="li-arrow">→</div>
+      </a>
+
+    </div>
+  </div>
+
+  <div class="main-foot">
+    <span class="main-foot-copy">© IMMORTAL BEING — All Rights Reserved</span>
+    <span class="main-foot-copy">Est. MMXXII · Rise Above All</span>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     ⑤ ABOUT
+════════════════════════════════ -->
+<div id="p-about" class="page">
+  <button class="back-global" onclick="toIntro()">Back</button>
+
+  <div class="about-hero">
+    <div class="ah-ghost">US</div>
+    <div class="ah-eyebrow">Chapter 03 · Our Story</div>
+    <h2 class="ah-title">About <em>Us</em></h2>
+    <p class="ah-sub">Immortal Being · Est. MMXXII</p>
+  </div>
+
+  <div class="about-body">
+    <div class="about-lang">
+      <button class="al-btn active" onclick="setLangPage('id',this)">🇮🇩 Indonesia</button>
+      <button class="al-btn" onclick="setLangPage('en',this)">🇬🇧 English</button>
+    </div>
+
+    <div id="alc-id" class="lang-c active">
+      <div class="about-grid">
+        <div>
+          <div class="ab-block-title">Sejarah</div>
+          <p class="ab-text">Immortal Being dulunya adalah grup privasi yang dibuat pada tahun <strong>2022</strong>. Sudah berdiri selama 4 tahun hanya untuk seru-seruan — hingga kini, <strong>23 April 2026</strong>, komunitas ini mulai dikembangkan oleh <strong>Shinez Kinji</strong> selaku Founder untuk menjadi komunitas yang jauh lebih besar.</p>
+        </div>
+        <div>
+          <div class="ab-block-title">Tim Kami</div>
+          <div class="team-row">
+            <div class="team-tag founder">⚜ Shinez Kinji · Founder</div>
+            <div class="team-tag">Fauzan · Admin</div>
+            <div class="team-tag">Hekal · Admin</div>
+            <div class="team-tag">Ciel · Admin</div>
+            <div class="team-tag">Jibril · Admin</div>
+          </div>
+        </div>
+        <div style="grid-column:1/-1">
+          <div class="ab-block-title">Rules Komunitas</div>
+          <ul class="rules-list-ab">
+            <li><span class="rn">01</span><p>Hormati semua anggota tanpa terkecuali — tidak ada toleransi untuk ujaran kebencian, rasisme, atau diskriminasi.</p></li>
+            <li><span class="rn">02</span><p>Dilarang keras melakukan spam, promosi tanpa seizin admin.</p></li>
+            <li><span class="rn">03</span><p>Jaga bahasa dan sikap — komunitas ini adalah ruang aman bagi semua orang.</p></li>
+            <li><span class="rn">04</span><p>Dilarang membocorkan informasi privat sesama anggota kepada pihak luar.</p></li>
+            <li><span class="rn">05</span><p>Ikuti arahan admin — keputusan admin bersifat final dan wajib dihormati.</p></li>
+            <li><span class="rn">06</span><p>Konten yang mengandung SARA, pornografi, atau kekerasan dilarang keras.</p></li>
+            <li><span class="rn">07</span><p>Gunakan nama komunitas Immortal Being hanya untuk hal-hal yang positif.</p></li>
+          </ul>
+        </div>
+        <div class="about-warning" style="grid-column:1/-1">
+          <p>Siapa pun yang memperburuk nama komunitas — terlebih melakukan diskriminasi atau membawa-bawa nama <strong>Immortal Being</strong> dengan cara yang buruk — tidak akan pernah dianggap sebagai bagian dari kami.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="alc-en" class="lang-c">
+      <div class="about-grid">
+        <div>
+          <div class="ab-block-title">Our Story</div>
+          <p class="ab-text">Immortal Being began as a private group founded in <strong>2022</strong>. For four years it existed purely for fun — until <strong>April 23, 2026</strong>, when <strong>Shinez Kinji</strong>, as Founder, began developing it into a much larger community.</p>
+        </div>
+        <div>
+          <div class="ab-block-title">Our Team</div>
+          <div class="team-row">
+            <div class="team-tag founder">⚜ Shinez Kinji · Founder</div>
+            <div class="team-tag">Fauzan · Admin</div>
+            <div class="team-tag">Hekal · Admin</div>
+            <div class="team-tag">Ciel · Admin</div>
+            <div class="team-tag">Jibril · Admin</div>
+          </div>
+        </div>
+        <div style="grid-column:1/-1">
+          <div class="ab-block-title">Community Rules</div>
+          <ul class="rules-list-ab">
+            <li><span class="rn">01</span><p>Respect every member without exception — zero tolerance for hate speech, racism, or discrimination.</p></li>
+            <li><span class="rn">02</span><p>Spam or unsolicited promotion without admin approval is strictly forbidden.</p></li>
+            <li><span class="rn">03</span><p>Maintain respectful language — this is a safe space for everyone.</p></li>
+            <li><span class="rn">04</span><p>Never share or leak private information of fellow members.</p></li>
+            <li><span class="rn">05</span><p>Follow admin directives — admin decisions are final.</p></li>
+            <li><span class="rn">06</span><p>Content involving SARA, pornography, or violence is strictly prohibited.</p></li>
+            <li><span class="rn">07</span><p>Use the Immortal Being name only for positive purposes.</p></li>
+          </ul>
+        </div>
+        <div class="about-warning" style="grid-column:1/-1">
+          <p>Anyone who tarnishes the reputation of this community — especially through discrimination or misusing the name <strong>Immortal Being</strong> — will never be considered a part of us.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main-foot">
+    <span class="main-foot-copy">© IMMORTAL BEING — All Rights Reserved</span>
+    <span class="main-foot-copy">Est. MMXXII</span>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     ⑥ HALL OF LEGENDS
+════════════════════════════════ -->
+<div id="p-hall" class="page">
+  <button class="back-global" onclick="toNav()">Back</button>
+
+  <div class="hall-hero">
+    <div class="hall-ghost">LEGENDS</div>
+    <div class="hall-trophy">
+      <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 8 L44 8 L44 28 C44 40 32 48 32 48 C32 48 20 40 20 28 Z" stroke="rgba(200,164,90,.9)" stroke-width="1.5" fill="rgba(200,164,90,.1)"/>
+        <path d="M8 12 L20 12 L20 24 C20 32 14 36 14 36 C10 34 8 30 8 26 Z" stroke="rgba(200,164,90,.6)" stroke-width="1" fill="rgba(200,164,90,.05)"/>
+        <path d="M56 12 L44 12 L44 24 C44 32 50 36 50 36 C54 34 56 30 56 26 Z" stroke="rgba(200,164,90,.6)" stroke-width="1" fill="rgba(200,164,90,.05)"/>
+        <line x1="26" y1="48" x2="26" y2="56" stroke="rgba(200,164,90,.6)" stroke-width="1.5"/>
+        <line x1="38" y1="48" x2="38" y2="56" stroke="rgba(200,164,90,.6)" stroke-width="1.5"/>
+        <line x1="20" y1="56" x2="44" y2="56" stroke="rgba(200,164,90,.7)" stroke-width="1.5"/>
+        <circle cx="32" cy="24" r="5" stroke="rgba(200,164,90,.7)" stroke-width="1" fill="rgba(200,164,90,.15)"/>
+        <circle cx="32" cy="24" r="2" fill="rgba(200,164,90,.8)"/>
+      </svg>
+    </div>
+    <div class="hall-eyebrow">Hall of Legends · Chapter 03</div>
+    <h2 class="hall-title">Those Who <em>Rose.</em></h2>
+    <p class="hall-sub">The immortal warriors who have proven their worth in the realm.</p>
+  </div>
+
+  <div class="hall-body">
+    <div class="rank-list">
+
+      <div class="rank-item rank-1">
+        <div class="rank-num">1</div>
+        <div class="rank-medal">👑</div>
+        <div class="rank-info">
+          <span class="rank-name">Shinez Kinji</span>
+          <span class="rank-role">Founder · The Immortal One</span>
+        </div>
+        <div class="rank-badge">Founder</div>
+      </div>
+
+      <div class="rank-item rank-2">
+        <div class="rank-num">2</div>
+        <div class="rank-medal">⚔</div>
+        <div class="rank-info">
+          <span class="rank-name">Fauzan</span>
+          <span class="rank-role">Admin · Guardian of the Realm</span>
+        </div>
+        <div class="rank-badge">Admin</div>
+      </div>
+
+      <div class="rank-item rank-3">
+        <div class="rank-num">3</div>
+        <div class="rank-medal">🛡</div>
+        <div class="rank-info">
+          <span class="rank-name">Hekal</span>
+          <span class="rank-role">Admin · Sentinel</span>
+        </div>
+        <div class="rank-badge">Admin</div>
+      </div>
+
+      <div class="rank-divider">The Sworn</div>
+
+      <div class="rank-item">
+        <div class="rank-num">4</div>
+        <div class="rank-medal">✦</div>
+        <div class="rank-info">
+          <span class="rank-name">Ciel</span>
+          <span class="rank-role">Admin · Warden</span>
+        </div>
+        <div class="rank-badge">Admin</div>
+      </div>
+
+      <div class="rank-item">
+        <div class="rank-num">5</div>
+        <div class="rank-medal">✦</div>
+        <div class="rank-info">
+          <span class="rank-name">Jibril</span>
+          <span class="rank-role">Admin · Warden</span>
+        </div>
+        <div class="rank-badge">Admin</div>
+      </div>
+
+    </div>
+
+    <div class="hall-coming">
+      <div class="hc-icon">⚜</div>
+      <div class="hc-title">Your name could be here.</div>
+      <p class="hc-sub">The Hall of Legends will grow as the community rises. More slots will open for those who prove their worth.</p>
+    </div>
+  </div>
+
+  <div class="main-foot">
+    <span class="main-foot-copy">© IMMORTAL BEING — All Rights Reserved</span>
+    <span class="main-foot-copy">Est. MMXXII</span>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     ⑦ THE CODEX
+════════════════════════════════ -->
+<div id="p-codex" class="page">
+  <button class="back-global" onclick="toNav()">Back</button>
+
+  <div class="codex-hero">
+    <div class="codex-ghost">CODEX</div>
+    <div class="codex-eyebrow">The Codex · Chapter 04</div>
+    <h2 class="codex-title">The Ancient <em>Texts.</em></h2>
+    <p class="codex-sub">Lore, manifesto, and the sacred doctrine of Immortal Being.</p>
+  </div>
+
+  <div class="codex-body">
+
+    <div class="codex-entry">
+      <span class="ce-num">I</span>
+      <div class="ce-tag">Origin</div>
+      <div class="ce-title">The Birth of Immortal Being</div>
+      <div class="ce-body">
+        In the year <strong>2022</strong>, from the shadows of obscurity, a covenant was formed. Not out of necessity, but out of a shared hunger — a hunger to <em>rise above</em>, to build something that outlasts the ordinary. What began as a private circle of kindred spirits quietly grew, bound not by obligation but by blood and vision.
+        <br/><br/>
+        On <strong>April 23, 2026</strong>, the veil was lifted. Under the founding hand of <strong>Shinez Kinji</strong>, Immortal Being stepped from the shadows into its true form — a realm where those who dare to rise are given a home.
+      </div>
+      <div class="ce-quote">
+        "We did not seek an audience. We sought brothers. We found an empire."
+        <cite>— Shinez Kinji, Founder</cite>
+      </div>
+    </div>
+
+    <div class="codex-entry">
+      <span class="ce-num">II</span>
+      <div class="ce-tag">Doctrine</div>
+      <div class="ce-title">The Seven Tenets</div>
+      <div class="ce-body">These are the pillars upon which every Immortal Being member stands. To break one is to break your oath.</div>
+      <div class="tenets-grid">
+        <div class="tenet">
+          <div class="tenet-n">I</div>
+          <div class="tenet-text"><strong>Honor</strong>Respect all members of the realm without exception. We are one blood.</div>
+        </div>
+        <div class="tenet">
+          <div class="tenet-n">II</div>
+          <div class="tenet-text"><strong>Silence</strong>What is spoken within the realm stays within. No secrets shall be carried out.</div>
+        </div>
+        <div class="tenet">
+          <div class="tenet-n">III</div>
+          <div class="tenet-text"><strong>Order</strong>The admins are the guardians. Their word is the law of the realm.</div>
+        </div>
+        <div class="tenet">
+          <div class="tenet-n">IV</div>
+          <div class="tenet-text"><strong>Purity</strong>No hatred, no discrimination, no poison. This realm is forged for the strong, not the hateful.</div>
+        </div>
+        <div class="tenet">
+          <div class="tenet-n">V</div>
+          <div class="tenet-text"><strong>Legacy</strong>Bear the name Immortal Being only in glory. We are defined by how we carry our name.</div>
+        </div>
+        <div class="tenet">
+          <div class="tenet-n">VI</div>
+          <div class="tenet-text"><strong>Ascension</strong>We do not stagnate. We grow, we build, we rise — always upward, never down.</div>
+        </div>
+        <div class="tenet">
+          <div class="tenet-n">VII</div>
+          <div class="tenet-text"><strong>Unity</strong>A chain is only as strong as its weakest link. We lift each other or we fall together.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="codex-entry">
+      <span class="ce-num">III</span>
+      <div class="ce-tag">Vision</div>
+      <div class="ce-title">What We Are Building</div>
+      <div class="ce-body">
+        Immortal Being is not merely a community. It is a <strong>movement</strong> — a proving ground for those who refuse mediocrity. We are building a space where talent is recognized, loyalty is rewarded, and ambition is celebrated.<br/><br/>
+        The realm spans across Roblox, Discord, TikTok, YouTube, and beyond. Each platform is a different battlefield. Each battlefield is a chance to rise. And those who rise the highest will be immortalized in the <em>Hall of Legends</em>, remembered long after the game is over.
+      </div>
+      <div class="ce-quote">
+        "Those who dare to rise shall never fall."
+        <cite>— The Immortal Creed</cite>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="main-foot">
+    <span class="main-foot-copy">© IMMORTAL BEING — All Rights Reserved</span>
+    <span class="main-foot-copy">Est. MMXXII</span>
+  </div>
+</div>
+
+<!-- ════════════════════════════════
+     ABOUT MODAL
+════════════════════════════════ -->
+<div class="modal-bg" id="modal-bg" onclick="closeBg(event)">
+  <div class="modal-box">
+    <div class="mb-handle"></div>
+    <button class="mb-close" onclick="closeModal()">✕</button>
+    <div class="mb-title">About Us</div>
+    <div class="mb-sub">Immortal Being · Est. MMXXII</div>
+    <div class="mb-divider"></div>
+    <div class="mb-lang">
+      <button class="mbl-btn active" onclick="setModalLang('id',this)">🇮🇩 ID</button>
+      <button class="mbl-btn" onclick="setModalLang('en',this)">🇬🇧 EN</button>
+    </div>
+    <div id="ml-id" class="mb-lc active">
+      <div class="mb-sec"><div class="mb-sec-title">Sejarah</div><p class="mb-text">Immortal Being dulunya grup privasi dibuat tahun <strong>2022</strong>. Hingga <strong>23 April 2026</strong>, dikembangkan oleh <strong>Shinez Kinji</strong> untuk menjadi komunitas lebih besar.</p></div>
+      <div class="mb-sec"><div class="mb-sec-title">Tim</div><div class="mb-admin"><div class="mb-chip founder">⚜ Shinez Kinji · Founder</div><div class="mb-chip">Fauzan · Admin</div><div class="mb-chip">Hekal · Admin</div><div class="mb-chip">Ciel · Admin</div><div class="mb-chip">Jibril · Admin</div></div></div>
+      <div class="mb-sec"><div class="mb-sec-title">Rules</div><ul class="mb-rules"><li><span class="rn">01</span><p>Hormati semua anggota tanpa terkecuali.</p></li><li><span class="rn">02</span><p>Dilarang spam atau promosi tanpa izin.</p></li><li><span class="rn">03</span><p>Jaga bahasa dan sikap di komunitas.</p></li><li><span class="rn">04</span><p>Dilarang bocorkan info privat anggota.</p></li><li><span class="rn">05</span><p>Ikuti arahan admin — keputusan final.</p></li><li><span class="rn">06</span><p>Konten SARA, pornografi, kekerasan dilarang.</p></li><li><span class="rn">07</span><p>Gunakan nama IB hanya untuk hal positif.</p></li></ul></div>
+      <div class="mb-warn">Siapa pun yang memperburuk nama komunitas tidak akan pernah dianggap bagian dari kami. Mau siapa pun itu.</div>
+    </div>
+    <div id="ml-en" class="mb-lc">
+      <div class="mb-sec"><div class="mb-sec-title">Our Story</div><p class="mb-text">Immortal Being began as a private group in <strong>2022</strong>. Until <strong>April 23, 2026</strong>, <strong>Shinez Kinji</strong> began developing it into a larger community.</p></div>
+      <div class="mb-sec"><div class="mb-sec-title">Team</div><div class="mb-admin"><div class="mb-chip founder">⚜ Shinez Kinji · Founder</div><div class="mb-chip">Fauzan · Admin</div><div class="mb-chip">Hekal · Admin</div><div class="mb-chip">Ciel · Admin</div><div class="mb-chip">Jibril · Admin</div></div></div>
+      <div class="mb-sec"><div class="mb-sec-title">Rules</div><ul class="mb-rules"><li><span class="rn">01</span><p>Respect every member — no hate speech.</p></li><li><span class="rn">02</span><p>No spam or unsolicited promotion.</p></li><li><span class="rn">03</span><p>Maintain respectful language always.</p></li><li><span class="rn">04</span><p>Never leak member private info.</p></li><li><span class="rn">05</span><p>Follow admin directives — decisions final.</p></li><li><span class="rn">06</span><p>No SARA, porn, or violent content.</p></li><li><span class="rn">07</span><p>Use IB name only for good.</p></li></ul></div>
+      <div class="mb-warn">Anyone who tarnishes the reputation of this community will never be considered part of us. Whoever they may be.</div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ═══ CURSOR ═══ */
+const dot = document.getElementById('c-dot');
+const ring = document.getElementById('c-ring');
+let mx = -100, my = -100, rx = -100, ry = -100;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  dot.style.left = mx + 'px'; dot.style.top = my + 'px';
+});
+(function lerp() {
+  rx += (mx - rx) * .1; ry += (my - ry) * .1;
+  ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+  requestAnimationFrame(lerp);
+})();
+document.querySelectorAll('a, button, .nav-option, .link-item').forEach(el => {
+  el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+  el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+});
+
+/* ═══ CANVAS — Particle field ═══ */
+const cvs = document.getElementById('bg-canvas');
+const ctx = cvs.getContext('2d');
+let W, H;
+function resize() { W = cvs.width = innerWidth; H = cvs.height = innerHeight; }
+resize(); addEventListener('resize', resize);
+
+class P {
+  constructor(init) {
+    this.reset(init);
+  }
+  reset(init) {
+    this.x = Math.random() * W;
+    this.y = init ? Math.random() * H : H + 10;
+    this.vx = (Math.random() - .5) * .2;
+    this.vy = -(Math.random() * .35 + .05);
+    this.r = Math.random() * 1 + .1;
+    this.alpha = Math.random() * .18 + .02;
+    this.life = 0;
+    this.maxLife = 350 + Math.random() * 600;
+    this.hue = Math.random() < .7 ? '155,0,0' : '220,30,60';
+  }
+  tick() {
+    this.x += this.vx; this.y += this.vy; this.life++;
+    if (this.life > this.maxLife) this.reset(false);
+  }
+  draw() {
+    const a = Math.min(1, (this.maxLife - this.life) / 80) * this.alpha;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(${this.hue},${a})`;
+    ctx.fill();
+  }
+}
+
+const pts = Array.from({ length: 90 }, () => new P(true));
+
+/* Flowing lines */
+class Line {
+  constructor() { this.reset(); }
+  reset() {
+    this.x = Math.random() * W;
+    this.y = H + 10;
+    this.len = 30 + Math.random() * 80;
+    this.speed = .3 + Math.random() * .5;
+    this.alpha = Math.random() * .07 + .01;
+    this.done = false;
+  }
+  tick() {
+    this.y -= this.speed;
+    if (this.y + this.len < 0) { this.reset(); }
+  }
+  draw() {
+    const g = ctx.createLinearGradient(this.x, this.y + this.len, this.x, this.y);
+    g.addColorStop(0, `rgba(155,0,0,0)`);
+    g.addColorStop(.5, `rgba(155,0,0,${this.alpha})`);
+    g.addColorStop(1, `rgba(155,0,0,0)`);
+    ctx.beginPath();
+    ctx.moveTo(this.x, this.y + this.len);
+    ctx.lineTo(this.x, this.y);
+    ctx.strokeStyle = g;
+    ctx.lineWidth = .5;
+    ctx.stroke();
+  }
+}
+const lines = Array.from({ length: 20 }, () => new Line());
+
+function loop() {
+  ctx.clearRect(0, 0, W, H);
+  pts.forEach(p => { p.tick(); p.draw(); });
+  lines.forEach(l => { l.tick(); l.draw(); });
+  requestAnimationFrame(loop);
+}
+loop();
+
+/* Ember sparks */
+for (let i = 0; i < 16; i++) {
+  const e = document.createElement('div');
+  const s = .7 + Math.random() * 2;
+  const isGold = Math.random() < .2;
+  Object.assign(e.style, {
+    position: 'fixed', bottom: 0,
+    left: Math.random() * 100 + '%',
+    width: s + 'px', height: s + 'px',
+    borderRadius: '50%',
+    background: isGold ? `rgba(200,164,90,.7)` : `rgba(196,18,48,.7)`,
+    boxShadow: `0 0 ${s * 5}px ${isGold ? 'rgba(200,164,90,.8)' : 'rgba(196,18,48,.8)'}`,
+    pointerEvents: 'none', zIndex: 1,
+    '--ex': (Math.random() - .5) * 3,
+    animation: `emberFly ${6 + Math.random() * 14}s ${Math.random() * 10}s linear infinite`
+  });
+  document.body.appendChild(e);
+}
+
+/* ═══ PAGE TRANSITIONS ═══ */
+let current = 'p-intro';
+const DUR = 550;
+
+function showPage(id, delay = 0) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  setTimeout(() => {
+    el.classList.add('visible');
+    el.style.transition = `opacity ${DUR}ms cubic-bezier(.4,0,.2,1)`;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      el.classList.add('shown');
+    }));
+    current = id;
+  }, delay);
+}
+
+function hidePage(id, cb) {
+  const el = document.getElementById(id);
+  if (!el) { cb && cb(); return; }
+  el.style.transition = `opacity ${DUR}ms cubic-bezier(.4,0,.2,1)`;
+  el.classList.remove('shown');
+  setTimeout(() => {
+    el.classList.remove('visible');
+    el.style.transition = '';
+    cb && cb();
+  }, DUR);
+}
+
+function go(from, to) {
+  burst();
+  hidePage(from, () => showPage(to));
+}
+
+function toNav() { go(current, 'p-nav'); }
+function toIntro() { go(current, 'p-intro'); }
+function toMain() { go(current, 'p-main'); }
+function toAuth() { go(current, 'p-auth'); }
+function toAbout() { go(current, 'p-about'); }
+function toHall() { go(current, 'p-hall'); }
+function toCodex() { go(current, 'p-codex'); }
+
+/* Init intro animation */
+setTimeout(() => {
+  document.getElementById('p-intro').classList.add('shown');
+  // animate blood drip
+  const drip = document.querySelector('.blood-drip');
+  if (drip) { drip.style.transition = 'height 2.5s 2s ease-out'; drip.style.height = '90px'; }
+}, 100);
+
+/* ═══ AUTH ═══ */
+function switchTab(t) {
+  const isIn = t === 'in';
+  document.getElementById('tab-in').classList.toggle('active', isIn);
+  document.getElementById('tab-up').classList.toggle('active', !isIn);
+  document.getElementById('form-in').style.display = isIn ? 'flex' : 'none';
+  document.getElementById('form-up').style.display = isIn ? 'none' : 'flex';
+}
+function showPw(id, btn) {
+  const i = document.getElementById(id);
+  i.type = i.type === 'password' ? 'text' : 'password';
+  btn.style.opacity = i.type === 'text' ? '.9' : '.2';
+}
+function doAuth(t) {
+  showToast(t === 'in' ? '⚔  Realm not yet open — coming soon' : '✦  Your oath has been noted');
+}
+
+/* ═══ TOAST ═══ */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+/* ═══ PARTICLE BURST ═══ */
+function burst() {
+  const symbols = ['✦', '⚔', '♛', '✧', '⚜', '◆', '⸸', '✸', '†'];
+  for (let i = 0; i < 20; i++) {
+    const p = document.createElement('div');
+    const angle = (i / 20) * Math.PI * 2;
+    const dist = 50 + Math.random() * 100;
+    p.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+    const isGold = Math.random() < .15;
+    Object.assign(p.style, {
+      position: 'fixed',
+      left: '50%', top: '50%',
+      transform: 'translate(-50%,-50%)',
+      fontFamily: "'Cormorant', serif",
+      fontSize: (9 + Math.random() * 13) + 'px',
+      color: isGold ? `rgba(200,164,90,${.6 + Math.random() * .4})` : `rgba(196,18,48,${.5 + Math.random() * .5})`,
+      textShadow: `0 0 12px ${isGold ? 'rgba(200,164,90,.9)' : 'rgba(196,18,48,.9)'}`,
+      pointerEvents: 'none', zIndex: 300,
+      '--bx': Math.cos(angle) * dist + 'px',
+      '--by': Math.sin(angle) * dist + 'px',
+      animation: `burstOut ${.4 + Math.random() * .35}s ease-out forwards`
+    });
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 800);
+  }
+}
+
+/* ═══ ABOUT MODAL ═══ */
+function openModal() {
+  document.getElementById('modal-bg').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  document.getElementById('modal-bg').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function closeBg(e) { if (e.target === document.getElementById('modal-bg')) closeModal(); }
+function setModalLang(lang, btn) {
+  btn.closest('.mb-lang').querySelectorAll('.mbl-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['id', 'en'].forEach(l => {
+    const el = document.getElementById('ml-' + l);
+    if (el) el.classList.toggle('active', l === lang);
+  });
+}
+
+/* ═══ ABOUT PAGE LANG ═══ */
+function setLangPage(lang, btn) {
+  btn.closest('.about-lang').querySelectorAll('.al-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['id', 'en'].forEach(l => {
+    const el = document.getElementById('alc-' + l);
+    if (el) el.classList.toggle('active', l === lang);
+  });
+}
+</script>
+</body>
+</html>
